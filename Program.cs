@@ -69,4 +69,56 @@ app.MapDelete("/projects/{id:int}", async (int id, AppDbContext db) =>
     return Results.NoContent();
 });
 
+// 4. Auto-apply pending migrations and seed database if empty
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    // Apply any pending EF Core migrations
+    db.Database.Migrate();
+    
+    // Seed dummy data if the database has no projects yet
+    if (!db.Projects.Any())
+    {
+        var projects = new List<Project>
+        {
+            new Project
+            {
+                Name = "Apollo Launch",
+                Description = "Prepare and execute the Apollo lunar mission launch sequence.",
+                Tasks = new List<DevTask>
+                {
+                    new DevTask { Title = "Calibrate thrusters", IsCompleted = false },
+                    new DevTask { Title = "Fuel booster rockets", IsCompleted = true },
+                    new DevTask { Title = "Run pre-flight diagnostics", IsCompleted = false }
+                }
+            },
+            new Project
+            {
+                Name = "Mars Rover",
+                Description = "Design and deploy the next-generation Mars exploration rover.",
+                Tasks = new List<DevTask>
+                {
+                    new DevTask { Title = "Assemble chassis", IsCompleted = true },
+                    new DevTask { Title = "Program navigation AI", IsCompleted = false },
+                    new DevTask { Title = "Test solar panel array", IsCompleted = false }
+                }
+            },
+            new Project
+            {
+                Name = "Space Station Zero",
+                Description = "Build a modular orbital station for deep-space research.",
+                Tasks = new List<DevTask>
+                {
+                    new DevTask { Title = "Weld habitat module", IsCompleted = true },
+                    new DevTask { Title = "Install life support systems", IsCompleted = false }
+                }
+            }
+        };
+        
+        db.Projects.AddRange(projects);
+        db.SaveChanges();
+    }
+}
+
 app.Run();
