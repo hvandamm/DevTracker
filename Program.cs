@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using DevTracker.Data;
 using DevTracker.Models;
+using DevTracker.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,28 +35,46 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapGet("/projects", async (AppDbContext db) =>
 {
     var projects = await db.Projects.Include(p => p.Tasks).ToListAsync();
-    return Results.Ok(projects);
+    var response = projects.Select(p => new ProjectResponseDto(
+        p.Id,
+        p.Name,
+        p.Description,
+        p.Tasks.Select(t => new TaskResponseDto(t.Id, t.Title, t.Status, t.ProjectId)).ToList()
+    ));
+    return Results.Ok(response);
 });
 
 // POST: Create a new project
-app.MapPost("/projects", async (Project project, AppDbContext db) =>
+app.MapPost("/projects", async (CreateProjectDto dto, AppDbContext db) =>
 {
+    var project = new Project
+    {
+        Name = dto.Name,
+        Description = dto.Description
+    };
     db.Projects.Add(project);
     await db.SaveChangesAsync();
-    return Results.Created($"/projects/{project.Id}", project);
+    var response = new ProjectResponseDto(project.Id, project.Name, project.Description, new());
+    return Results.Created($"/projects/{project.Id}", response);
 });
 
 // POST: Add a task to a specific project
-app.MapPost("/projects/{projectId:int}/tasks", async (int projectId, DevTask task, AppDbContext db) =>
+app.MapPost("/projects/{projectId:int}/tasks", async (int projectId, CreateTaskDto dto, AppDbContext db) =>
 {
     var project = await db.Projects.FindAsync(projectId);
     if (project == null) return Results.NotFound($"Project with ID {projectId} not found.");
 
-    task.ProjectId = projectId;
+    var task = new DevTask
+    {
+        Title = dto.Title,
+        Status = dto.Status,
+        ProjectId = projectId
+    };
     db.Tasks.Add(task);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/projects/{projectId}/tasks/{task.Id}", task);
+    var response = new TaskResponseDto(task.Id, task.Title, task.Status, task.ProjectId);
+    return Results.Created($"/projects/{projectId}/tasks/{task.Id}", response);
 });
 
 // DELETE: Delete a project (will cascade delete tasks due to our DbContext config!)
@@ -88,9 +107,9 @@ using (var scope = app.Services.CreateScope())
                 Description = "Prepare and execute the Apollo lunar mission launch sequence.",
                 Tasks = new List<DevTask>
                 {
-                    new DevTask { Title = "Calibrate thrusters", IsCompleted = false },
-                    new DevTask { Title = "Fuel booster rockets", IsCompleted = true },
-                    new DevTask { Title = "Run pre-flight diagnostics", IsCompleted = false }
+                    new DevTask { Title = "Calibrate thrusters", Status = DevTaskStatus.Todo },
+                    new DevTask { Title = "Fuel booster rockets", Status = DevTaskStatus.Done },
+                    new DevTask { Title = "Run pre-flight diagnostics", Status = DevTaskStatus.InProgress }
                 }
             },
             new Project
@@ -99,9 +118,9 @@ using (var scope = app.Services.CreateScope())
                 Description = "Design and deploy the next-generation Mars exploration rover.",
                 Tasks = new List<DevTask>
                 {
-                    new DevTask { Title = "Assemble chassis", IsCompleted = true },
-                    new DevTask { Title = "Program navigation AI", IsCompleted = false },
-                    new DevTask { Title = "Test solar panel array", IsCompleted = false }
+                    new DevTask { Title = "Assemble chassis", Status = DevTaskStatus.Done },
+                    new DevTask { Title = "Program navigation AI", Status = DevTaskStatus.Todo },
+                    new DevTask { Title = "Test solar panel array", Status = DevTaskStatus.Blocked }
                 }
             },
             new Project
@@ -110,8 +129,8 @@ using (var scope = app.Services.CreateScope())
                 Description = "Build a modular orbital station for deep-space research.",
                 Tasks = new List<DevTask>
                 {
-                    new DevTask { Title = "Weld habitat module", IsCompleted = true },
-                    new DevTask { Title = "Install life support systems", IsCompleted = false }
+                    new DevTask { Title = "Weld habitat module", Status = DevTaskStatus.Done },
+                    new DevTask { Title = "Install life support systems", Status = DevTaskStatus.Todo }
                 }
             }
         };
