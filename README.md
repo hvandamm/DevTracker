@@ -26,3 +26,12 @@ Ensure you have the .NET 8.0 SDK (or newer) installed on your machine. You can v
 
 ```bash
 dotnet --version
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/hvandamm/DevTracker.git](https://github.com/hvandamm/DevTracker.git)
+
+### 2. Install the Entity Framework CLI Tool
+To apply migrations and manage the database, you need the global dotnet-ef tool. Run the following command to install it:
+```bash
+dotnet tool install --global dotnet-ef --version 8.0.12
