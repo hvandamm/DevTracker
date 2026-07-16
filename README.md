@@ -38,3 +38,18 @@ To apply migrations and manage the database, you need the global dotnet-ef tool.
 ```bash
 dotnet tool install --global dotnet-ef --version 8.0.12
 ```
+Note for Linux/macOS users: If the terminal cannot find the dotnet ef command after installation<br>
+ensure that the global .NET tools directory is added to your system's PATH.<br>
+You can add it temporarily for your current terminal session using:
+```bash
+export PATH="$PATH:$HOME/.dotnet/tools"
+```
+### 3. Create the database and apply migrations
+```bash
+dotnet ef database update
+```
+
+### 4. Run the Application.
+```bash
+dotnet run
+```
