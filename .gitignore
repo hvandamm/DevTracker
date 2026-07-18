@@ -1,2 +1,5 @@
 # Local SQLite database
 *.db
+/obj
+/env
+bin/
