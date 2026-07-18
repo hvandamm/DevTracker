@@ -44,10 +44,21 @@ You can add it temporarily for your current terminal session using:
 ```bash
 export PATH="$PATH:$HOME/.dotnet/tools"
 ```
-### 3. Create the database and apply migrations
+### 3. Build the project and Create the database
+
+for Linux and Mac
 ```bash
 dotnet restore
 dotnet build
+echo 'export DOTNET_ROLL_FORWARD="Major"' >> ~/.bashrc
+dotnet ef database update
+```
+
+for Windows(powershell)
+```bash
+dotnet restore
+dotnet build
+$env:DOTNET_ROLL_FORWARD="Major"
 dotnet ef database update
 ```
 
