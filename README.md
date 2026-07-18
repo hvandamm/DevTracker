@@ -30,7 +30,7 @@ dotnet --version
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/hvandamm/DevTracker.git](https://github.com/hvandamm/DevTracker.git)
+git clone https://github.com/hvandamm/DevTracker.git
 ```
 
 ### 2. Install the Entity Framework CLI Tool
@@ -46,6 +46,8 @@ export PATH="$PATH:$HOME/.dotnet/tools"
 ```
 ### 3. Create the database and apply migrations
 ```bash
+dotnet restore
+dotnet build
 dotnet ef database update
 ```
 
